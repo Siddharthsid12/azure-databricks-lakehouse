@@ -1,0 +1,13 @@
+[
+  {"product_id": "P001", "name": "Cloud Analytics Platform", "category": "Software", "subcategory": "Analytics", "brand": "DataVision", "unit_price": 299.99, "cost_price": 120.00, "launch_date": "2023-01-01", "is_active": true},
+  {"product_id": "P002", "name": "Data Integration Suite", "category": "Software", "subcategory": "ETL", "brand": "DataVision", "unit_price": 499.99, "cost_price": 200.00, "launch_date": "2023-02-15", "is_active": true},
+  {"product_id": "P003", "name": "ML Pipeline Toolkit", "category": "Software", "subcategory": "Machine Learning", "brand": "AIForge", "unit_price": 799.99, "cost_price": 350.00, "launch_date": "2023-03-01", "is_active": true},
+  {"product_id": "P004", "name": "Real-Time Dashboard Pro", "category": "Software", "subcategory": "Visualization", "brand": "VizCraft", "unit_price": 199.99, "cost_price": 80.00, "launch_date": "2023-04-10", "is_active": true},
+  {"product_id": "P005", "name": "Data Warehouse Connector", "category": "Software", "subcategory": "Integration", "brand": "DataVision", "unit_price": 149.99, "cost_price": 60.00, "launch_date": "2023-05-20", "is_active": true},
+  {"product_id": "P006", "name": "Security Compliance Module", "category": "Software", "subcategory": "Security", "brand": "SecureData", "unit_price": 599.99, "cost_price": 250.00, "launch_date": "2023-06-01", "is_active": true},
+  {"product_id": "P007", "name": "API Gateway Manager", "category": "Infrastructure", "subcategory": "Networking", "brand": "CloudBridge", "unit_price": 349.99, "cost_price": 140.00, "launch_date": "2023-07-15", "is_active": true},
+  {"product_id": "P008", "name": "Stream Processing Engine", "category": "Infrastructure", "subcategory": "Streaming", "brand": "AIForge", "unit_price": 899.99, "cost_price": 400.00, "launch_date": "2023-08-01", "is_active": true},
+  {"product_id": "P009", "name": "Data Quality Monitor", "category": "Software", "subcategory": "Governance", "brand": "SecureData", "unit_price": 249.99, "cost_price": 100.00, "launch_date": "2023-09-10", "is_active": false},
+  {"product_id": "P010", "name": "Automated Report Builder", "category": "Software", "subcategory": "Visualization", "brand": "VizCraft", "unit_price": 179.99, "cost_price": 70.00, "launch_date": "2024-01-05", "is_active": true},
+  {"product_id": "P003", "name": "ML Pipeline Toolkit v2", "category": "Software", "subcategory": "Machine Learning", "brand": "AIForge", "unit_price": 899.99, "cost_price": 380.00, "launch_date": "2024-02-01", "is_active": true}
+]

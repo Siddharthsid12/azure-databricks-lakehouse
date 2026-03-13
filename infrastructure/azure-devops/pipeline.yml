@@ -1,0 +1,193 @@
+# =============================================================================
+# Azure DevOps CI/CD Pipeline — Lakehouse Project
+# =============================================================================
+# Stages:
+#   1. Lint    — Code quality checks (ruff, black)
+#   2. Test    — Unit tests with pytest + coverage
+#   3. Build   — Package artifacts
+#   4. Deploy  — Deploy to Databricks workspace
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - src/**
+      - tests/**
+      - notebooks/**
+      - config/**
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  pythonVersion: '3.10'
+  databricksHost: '$(DATABRICKS_HOST)'
+  databricksToken: '$(DATABRICKS_TOKEN)'
+  workspacePath: '/Repos/lakehouse-project'
+
+stages:
+  # ── Stage 1: Lint ──────────────────────────────────────────────────
+  - stage: Lint
+    displayName: 'Code Quality'
+    jobs:
+      - job: LintCheck
+        displayName: 'Lint & Format Check'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Set up Python'
+
+          - script: |
+              pip install ruff black
+            displayName: 'Install linting tools'
+
+          - script: |
+              echo "Running ruff linter..."
+              ruff check src/ tests/ --output-format=github
+            displayName: 'Run ruff'
+
+          - script: |
+              echo "Checking code formatting with black..."
+              black --check --diff src/ tests/
+            displayName: 'Run black format check'
+
+  # ── Stage 2: Test ──────────────────────────────────────────────────
+  - stage: Test
+    displayName: 'Unit Tests'
+    dependsOn: Lint
+    jobs:
+      - job: UnitTests
+        displayName: 'Run pytest'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Set up Python'
+
+          - script: |
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+
+          - script: |
+              python -m pytest tests/ \
+                -v \
+                --tb=short \
+                --junitxml=test-results/results.xml \
+                --cov=src \
+                --cov-report=xml:coverage/coverage.xml \
+                --cov-report=html:coverage/htmlcov \
+                --cov-fail-under=80
+            displayName: 'Run tests with coverage'
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'test-results/results.xml'
+              failTaskOnFailedTests: true
+            displayName: 'Publish test results'
+            condition: always()
+
+          - task: PublishCodeCoverageResults@2
+            inputs:
+              summaryFileLocation: 'coverage/coverage.xml'
+            displayName: 'Publish coverage'
+            condition: always()
+
+  # ── Stage 3: Build ─────────────────────────────────────────────────
+  - stage: Build
+    displayName: 'Build Artifacts'
+    dependsOn: Test
+    jobs:
+      - job: Package
+        displayName: 'Package pipeline code'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)'
+              Contents: |
+                src/**
+                notebooks/**
+                config/**
+                requirements.txt
+                setup.py
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/lakehouse'
+            displayName: 'Copy pipeline files'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/lakehouse'
+              ArtifactName: 'lakehouse-pipeline'
+            displayName: 'Publish artifact'
+
+  # ── Stage 4: Deploy ────────────────────────────────────────────────
+  - stage: Deploy
+    displayName: 'Deploy to Databricks'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployToDatabricks
+        displayName: 'Deploy notebooks & config'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: UsePythonVersion@0
+                  inputs:
+                    versionSpec: '$(pythonVersion)'
+                  displayName: 'Set up Python'
+
+                - script: |
+                    pip install databricks-cli
+                  displayName: 'Install Databricks CLI'
+
+                - script: |
+                    echo "[DEFAULT]" > ~/.databrickscfg
+                    echo "host = $(databricksHost)" >> ~/.databrickscfg
+                    echo "token = $(databricksToken)" >> ~/.databrickscfg
+                  displayName: 'Configure Databricks CLI'
+
+                - script: |
+                    echo "Deploying notebooks to Databricks workspace..."
+                    databricks workspace import_dir \
+                      $(Pipeline.Workspace)/lakehouse-pipeline/notebooks \
+                      $(workspacePath)/notebooks \
+                      --overwrite
+                  displayName: 'Deploy notebooks'
+
+                - script: |
+                    echo "Deploying source code..."
+                    databricks workspace import_dir \
+                      $(Pipeline.Workspace)/lakehouse-pipeline/src \
+                      $(workspacePath)/src \
+                      --overwrite
+                  displayName: 'Deploy source code'
+
+                - script: |
+                    echo "Deploying configuration..."
+                    databricks workspace import_dir \
+                      $(Pipeline.Workspace)/lakehouse-pipeline/config \
+                      $(workspacePath)/config \
+                      --overwrite
+                  displayName: 'Deploy config'
+
+                - script: |
+                    echo "Deployment complete!"
+                    echo "Workspace: $(databricksHost)"
+                    echo "Path: $(workspacePath)"
+                  displayName: 'Deployment summary'

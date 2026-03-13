@@ -1,0 +1,16 @@
+customer_id,first_name,last_name,email,phone,segment,region,city,country,registration_date
+C001,Anna,Müller,anna.mueller@email.de,+49-170-1234567,Premium,Europe,Berlin,Germany,2023-01-15
+C002,Erik,Hansen,erik.hansen@email.no,+47-912-34567,Standard,Europe,Oslo,Norway,2023-02-20
+C003,Sofia,Lindberg,sofia.lindberg@email.se,+46-70-1234567,Premium,Europe,Stockholm,Sweden,2023-03-10
+C004,James,Wilson,james.wilson@email.com,+1-555-0101,Enterprise,North America,New York,USA,2023-04-05
+C005,Maria,Garcia,maria.garcia@email.es,+34-612-345678,Standard,Europe,Madrid,Spain,2023-05-12
+C006,Kenji,Tanaka,kenji.tanaka@email.jp,+81-90-1234-5678,Premium,Asia,Tokyo,Japan,2023-06-01
+C007,Priya,Sharma,priya.sharma@email.in,+91-98765-43210,Standard,Asia,Mumbai,India,2023-06-15
+C008,Lucas,Dubois,lucas.dubois@email.fr,+33-6-12-34-56-78,Enterprise,Europe,Paris,France,2023-07-20
+C009,Olivia,Brown,olivia.brown@email.co.uk,+44-7700-900000,Premium,Europe,London,UK,2023-08-08
+C010,Ahmed,Al-Rashid,ahmed.alrashid@email.ae,+971-50-1234567,Enterprise,Middle East,Dubai,UAE,2023-09-01
+C011,Anna,Müller,anna.mueller_v2@email.de,+49-170-9999999,Enterprise,Europe,Munich,Germany,2024-01-10
+C012,Erik,Hansen,erik.hansen_v2@email.no,+47-912-99999,Premium,Europe,Bergen,Norway,2024-02-15
+C013,Chen,Wei,chen.wei@email.cn,+86-138-0000-0000,Standard,Asia,Shanghai,China,2024-03-01
+C014,Isabella,Rossi,isabella.rossi@email.it,+39-333-1234567,Premium,Europe,Milan,Italy,2024-03-15
+C015,Lars,Johansen,lars.johansen@email.no,+47-922-11111,Standard,Europe,Trondheim,Norway,2024-04-01

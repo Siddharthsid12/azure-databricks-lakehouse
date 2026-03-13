@@ -1,0 +1,142 @@
+# =============================================================================
+# Data Quality Rules — Validation Framework
+# =============================================================================
+# severity: critical (blocks pipeline) | warning (logs alert, continues)
+
+rules:
+  # ─── CUSTOMERS ───────────────────────────────────────────────────
+  customers:
+    - name: "customer_id_not_null"
+      column: "customer_id"
+      check: "not_null"
+      severity: "critical"
+      description: "Customer ID must not be null"
+      
+    - name: "customer_id_unique"
+      column: "customer_id"
+      check: "unique"
+      severity: "critical"
+      description: "Customer ID must be unique within load batch"
+      
+    - name: "email_format_valid"
+      column: "email"
+      check: "regex"
+      pattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+      severity: "warning"
+      description: "Email must match standard format"
+      
+    - name: "segment_in_valid_set"
+      column: "segment"
+      check: "in_set"
+      valid_values: ["Standard", "Premium", "Enterprise"]
+      severity: "warning"
+      description: "Customer segment must be a known value"
+      
+    - name: "registration_date_not_future"
+      column: "registration_date"
+      check: "date_not_future"
+      severity: "critical"
+      description: "Registration date cannot be in the future"
+
+  # ─── PRODUCTS ────────────────────────────────────────────────────
+  products:
+    - name: "product_id_not_null"
+      column: "product_id"
+      check: "not_null"
+      severity: "critical"
+      description: "Product ID must not be null"
+      
+    - name: "unit_price_positive"
+      column: "unit_price"
+      check: "greater_than"
+      threshold: 0
+      severity: "critical"
+      description: "Unit price must be positive"
+      
+    - name: "cost_less_than_price"
+      columns: ["cost_price", "unit_price"]
+      check: "column_a_less_than_b"
+      severity: "warning"
+      description: "Cost price should be less than unit price"
+      
+    - name: "category_not_null"
+      column: "category"
+      check: "not_null"
+      severity: "critical"
+      description: "Product category is required"
+
+  # ─── ORDERS ──────────────────────────────────────────────────────
+  orders:
+    - name: "order_id_not_null"
+      column: "order_id"
+      check: "not_null"
+      severity: "critical"
+      description: "Order ID must not be null"
+      
+    - name: "customer_id_not_null"
+      column: "customer_id"
+      check: "not_null"
+      severity: "critical"
+      description: "Customer ID is required for every order"
+      
+    - name: "product_id_not_null"
+      column: "product_id"
+      check: "not_null"
+      severity: "critical"
+      description: "Product ID is required for every order"
+      
+    - name: "quantity_positive"
+      column: "quantity"
+      check: "greater_than"
+      threshold: 0
+      severity: "critical"
+      description: "Order quantity must be positive"
+      
+    - name: "discount_in_range"
+      column: "discount_pct"
+      check: "between"
+      min_value: 0.0
+      max_value: 1.0
+      severity: "critical"
+      description: "Discount must be between 0% and 100%"
+      
+    - name: "order_date_valid"
+      column: "order_date"
+      check: "valid_date"
+      format: "yyyy-MM-dd"
+      severity: "critical"
+      description: "Order date must be a valid date"
+      
+    - name: "order_status_valid"
+      column: "order_status"
+      check: "in_set"
+      valid_values: ["pending", "shipped", "completed", "cancelled", "returned"]
+      severity: "warning"
+      description: "Order status must be a known value"
+
+  # ─── CROSS-TABLE (REFERENTIAL INTEGRITY) ─────────────────────────
+  referential_integrity:
+    - name: "orders_customer_exists"
+      source_table: "silver_orders"
+      source_column: "customer_id"
+      reference_table: "silver_customers"
+      reference_column: "customer_id"
+      severity: "critical"
+      description: "Every order must reference an existing customer"
+      
+    - name: "orders_product_exists"
+      source_table: "silver_orders"
+      source_column: "product_id"
+      reference_table: "silver_products"
+      reference_column: "product_id"
+      severity: "critical"
+      description: "Every order must reference an existing product"
+
+  # ─── FRESHNESS ───────────────────────────────────────────────────
+  freshness:
+    - name: "orders_data_fresh"
+      table: "silver_orders"
+      column: "order_date"
+      max_age_hours: 48
+      severity: "warning"
+      description: "Orders data should not be older than 48 hours"

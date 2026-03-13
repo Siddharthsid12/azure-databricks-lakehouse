@@ -1,0 +1,74 @@
+# =============================================================================
+# Pipeline Configuration — Azure Databricks Lakehouse
+# =============================================================================
+
+# Azure Storage Paths
+storage:
+  account_name: "${AZURE_STORAGE_ACCOUNT}"
+  container: "lakehouse"
+  bronze_path: "abfss://lakehouse@${AZURE_STORAGE_ACCOUNT}.dfs.core.windows.net/bronze"
+  silver_path: "abfss://lakehouse@${AZURE_STORAGE_ACCOUNT}.dfs.core.windows.net/silver"
+  gold_path: "abfss://lakehouse@${AZURE_STORAGE_ACCOUNT}.dfs.core.windows.net/gold"
+  quarantine_path: "abfss://lakehouse@${AZURE_STORAGE_ACCOUNT}.dfs.core.windows.net/quarantine"
+  checkpoint_path: "abfss://lakehouse@${AZURE_STORAGE_ACCOUNT}.dfs.core.windows.net/checkpoints"
+
+# Local paths (for testing / development)
+local:
+  bronze_path: "/tmp/lakehouse/bronze"
+  silver_path: "/tmp/lakehouse/silver"
+  gold_path: "/tmp/lakehouse/gold"
+  quarantine_path: "/tmp/lakehouse/quarantine"
+  sample_data_path: "data/sample"
+
+# Source definitions
+sources:
+  customers:
+    format: "csv"
+    file_pattern: "customers*.csv"
+    schema_version: "1.0"
+    business_key: "customer_id"
+    load_type: "full"
+    
+  products:
+    format: "json"
+    file_pattern: "products*.json"
+    schema_version: "1.0"
+    business_key: "product_id"
+    load_type: "full"
+    
+  orders:
+    format: "csv"
+    file_pattern: "orders*.csv"
+    schema_version: "1.0"
+    business_key: "order_id"
+    load_type: "incremental"
+
+# Delta table settings
+delta:
+  optimize_interval_hours: 24
+  vacuum_retention_hours: 168  # 7 days
+  z_order_columns:
+    orders: ["order_date", "customer_id"]
+    customers: ["customer_id"]
+    products: ["product_id"]
+
+# SCD Type 2 settings
+scd:
+  tracked_dimensions:
+    - "dim_customer"
+    - "dim_product"
+  hash_algorithm: "sha256"
+  effective_date_column: "scd_start_date"
+  expiry_date_column: "scd_end_date"
+  current_flag_column: "is_current"
+  default_expiry_date: "9999-12-31"
+
+# Pipeline settings
+pipeline:
+  spark_config:
+    spark.sql.shuffle.partitions: 200
+    spark.databricks.delta.optimizeWrite.enabled: true
+    spark.databricks.delta.autoCompact.enabled: true
+  batch_size: 100000
+  max_retries: 3
+  retry_delay_seconds: 60
